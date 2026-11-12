@@ -89,7 +89,7 @@ No neural network and no language model. It is a small physical model of your PC
   "Identify your fans" run**: until each fan header has a confirmed device (from the wizard, or set by hand in
   "What's connected?"), all headers stay on the BIOS. FanRGB trusts the device you confirm, so check it; a header marked "Not sure" never runs below 60 % (it could be a pump). The firmware fan registers (including the
   IT8689E "extra vectors" Smart Fan uses) are saved and restored on exit, profile change, sensor loss and
-  "Return fans to BIOS" (Ctrl+Shift+B).
+  "Return fans to BIOS" (tray menu, or Ctrl+Shift+B in the FanRGB window).
 - **Crash watchdog**: a separate `--watchdog` process restores the saved firmware state if FanRGB is killed or
   crashes; a panic hook and the UI's `catch_unwind` hand fans back as well. The snapshot lives in an
   admin-only folder and is validated (process, boot, plausible values) before use. Fans without a chip

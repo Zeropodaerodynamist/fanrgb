@@ -45,7 +45,7 @@ without touching your hardware.
 3. **Read-only first.** A new board starts with `--diag` and the BIOS mode; compare every reading with HWiNFO
    before any fan is driven.
 4. **One header at a time** on real hardware, with temperatures in view, and **Return fans to BIOS**
-   (Ctrl+Shift+B) within reach.
+   (tray menu, or Ctrl+Shift+B in the FanRGB window) within reach.
 5. **Tests stay green:** `cargo fmt --all --check`, `cargo clippy --release --locked`, `cargo test --release
    --locked`. Add tests for what you change.
 6. **Licences:** keep the Apache-2.0 and MPL-2.0 headers; do not copy code from GPL projects (reading them to

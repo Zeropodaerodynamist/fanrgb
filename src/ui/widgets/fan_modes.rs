@@ -1,6 +1,7 @@
 //! Fan-mode tile row: Silent · Balanced · Performance · Full speed · Auto (AI) · BIOS,
 //! then a "Custom ▾" tile that opens the profile list. One focus stop for the whole row: ←/→ move,
-//! Enter/Space apply; Alt+1..6 work globally.
+//! Enter/Space apply; Alt+1..6 work anywhere in the FanRGB window (not system-wide: the window
+//! must be in front).
 
 use egui::{Align2, Color32, EventFilter, Id, Key, Pos2, Rect, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
 

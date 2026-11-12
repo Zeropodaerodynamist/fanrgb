@@ -10,7 +10,7 @@ through trying it safely, one step at a time. Each step can be undone, and you c
 - Install PawnIO from an administrator prompt: `winget install namazso.PawnIO` (or <https://pawnio.eu/>).
 - Optional but useful: keep [HWiNFO](https://www.hwinfo.com/) open in sensors-only mode, to compare readings.
 - **How to get your BIOS fan control back at any time:**
-  - tray icon › **Return fans to BIOS**, or Ctrl+Shift+B;
+  - tray icon › **Return fans to BIOS** (always works), or Ctrl+Shift+B while the FanRGB window is in front;
   - or run `fanrgb.exe --exit`;
   - or, if the app does not react, use Task Manager › End task on the main `fanrgb.exe` (not the one started with
     `--watchdog`). The watchdog hands the fans back to the BIOS within seconds.
@@ -65,7 +65,8 @@ Pumps are never run slow for long. Fan modes other than BIOS only start once eve
 
 ## 6. Try the modes, one at a time (15 minutes)
 
-Use the tiles on Overview or Alt+1 to Alt+6: Silent, Balanced, Performance, Full speed, Auto (AI), BIOS.
+Use the tiles on Overview, or Alt+1 to Alt+6 while the FanRGB window is in front (the keys do nothing when another
+window has the focus): Silent, Balanced, Performance, Full speed, Auto (AI), BIOS.
 
 For each mode, wait a minute or two and check:
 

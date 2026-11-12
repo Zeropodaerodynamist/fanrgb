@@ -290,10 +290,13 @@ fn run_diag() {
     // The report is meant to be attached to issues: no account name, no machine SID.
     let s = diag::scrub_personal(&s);
     let path = util::paths::diag_file();
-    match util::fsx::write_atomic(&path, s.as_bytes()) {
-        Ok(()) => println!("{s}\nReport written to {}", path.display()),
-        Err(e) => println!("{s}\n[{}] could not write {}: {e}", error::ErrorCode::Io, path.display()),
-    }
+    // The closing line is part of what gets attached (TESTING.md redirects this output to a file);
+    // without elevation the path is in the user's profile.
+    let tail = match util::fsx::write_atomic(&path, s.as_bytes()) {
+        Ok(()) => format!("Report written to {}", path.display()),
+        Err(e) => format!("[{}] could not write {}: {e}", error::ErrorCode::Io, path.display()),
+    };
+    println!("{s}\n{}", diag::scrub_personal(&tail));
 }
 
 /// Runs `fanrgb <arg>` elevated (UAC prompt), waits, and returns its exit code.

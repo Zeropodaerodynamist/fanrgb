@@ -125,7 +125,9 @@ stable: MINOR = behaviour users notice (modes, defaults, new pages), PATCH = fix
     driver-call sizes are checked before use; configuration mode is always left on error (FR-HW-001 to 005).
   - The running-program check no longer takes its parameters from the file it judges; "Open Task Manager"
     starts it without administrator rights; state-folder recovery never rewrites a file found in its place;
-    diagnostics hide the Windows account name and SID (FR-PRIV-001 to 004).
+    diagnostics hide the Windows account name and SID (FR-PRIV-001 to 004). Found on hardware: every log
+    line now gets the same scrub (one logged the desktop user's full SID), as does the line `--diag` prints
+    after the report, and Microsoft Entra ID account SIDs are scrubbed too.
   - Updater and catalogue: WinHTTP options fail closed, classic (write-capable) tokens are refused, elevated
     reads use identification-level impersonation, the catalogue fetcher caps decompressed size, and the
     rollback note in `docs/RELEASING.md` is corrected (FR-UPD-002, 003, 005 to 007).

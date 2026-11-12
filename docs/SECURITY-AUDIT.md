@@ -73,6 +73,12 @@ is in the [CHANGELOG](../CHANGELOG.md) (0.2.0, *Security*).
   real fans with a high minimum speed, so this waits for measurements on more fans. Similarly, a calibration
   of a very slow-spinning fan that had not settled at each step can over-promise mid-range airflow by up to
   about 9 % of full speed; requests from about 94 % upwards still map to full duty.
+- **What the privacy scrub does not catch.** Reports and every log line remove the account name from
+  `C:\Users\<name>\` paths (backslashes, in any case, also doubled) and the machine or account part of
+  `S-1-5-21-` and `S-1-12-1-` (Microsoft Entra ID) account SIDs. Paths written with forward slashes, lower-case
+  SIDs and SIDs without their account number are not scrubbed; FanRGB writes none of these itself. Lines
+  written by builds before the scrub stay in `fanrgb.log` until it rotates at 2 MB, and then in
+  `fanrgb.old.log` until the next rotation; no published build wrote them.
 
 ## Verification on Windows
 
@@ -82,8 +88,10 @@ is in the [CHANGELOG](../CHANGELOG.md) (0.2.0, *Security*).
   randomised sweeps of thousands of fan curves across critical temperatures from 60 to 95 °C) and re-ran
   every check. Over four rounds it found nine further holes in the fixes (in the calibration-table checks, the
   calibration wizard, and how the hard floor reaches curves the fan chip runs itself); each was fixed and
-  re-tested until its verdict was a pass, with two Low items documented above. Final run: 558 tests passed,
-  0 failed.
+  re-tested until its verdict was a pass, with two Low items documented above.
+- The hardware test on the reference PC (12 November) found one more: a log line naming the Windows account's
+  SID. Every log line now goes through the same scrub as the report, and the tester's fifth and sixth rounds
+  passed it. Final run: 569 tests passed, 0 failed.
 - Hardware: see [HARDWARE.md](HARDWARE.md) for the PC the beta was tested on.
 
 ## Reporting a problem

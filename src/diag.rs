@@ -811,19 +811,28 @@ pub fn scrub_personal(text: &str) -> String {
     scrub_sids(&out)
 }
 
-/// `S-1-5-21-<three machine or domain numbers>-<rid>` -> `S-1-5-21-<machine>-<rid>`.
+/// `S-1-5-21-<three machine or domain numbers>-<rid>` -> `S-1-5-21-<machine>-<rid>`, and a
+/// Microsoft Entra ID (work or school) account, `S-1-12-1-<four numbers>`, whose numbers are the
+/// account's object id -> `S-1-12-1-<account>`.
 fn scrub_sids(text: &str) -> String {
-    const PREFIX: &str = "S-1-5-21-";
+    let text = scrub_sid_kind(text, "S-1-5-21-", |g| format!("<machine>-{}", g[3..].join("-")));
+    scrub_sid_kind(&text, "S-1-12-1-", |g| {
+        if g.len() > 4 { format!("<account>-{}", g[4..].join("-")) } else { "<account>".to_string() }
+    })
+}
+
+/// Rewrites every `prefix` followed by at least four non-empty number groups with `replace(groups)`;
+/// anything shorter is left as it is.
+fn scrub_sid_kind(text: &str, prefix: &str, replace: impl Fn(&[&str]) -> String) -> String {
     let mut out = String::with_capacity(text.len());
     let mut rest = text;
-    while let Some(i) = rest.find(PREFIX) {
-        let after = &rest[i + PREFIX.len()..];
+    while let Some(i) = rest.find(prefix) {
+        let after = &rest[i + prefix.len()..];
         let len = after.find(|c: char| !(c.is_ascii_digit() || c == '-')).unwrap_or(after.len());
         let groups: Vec<&str> = after[..len].split('-').collect();
-        out.push_str(&rest[..i + PREFIX.len()]);
+        out.push_str(&rest[..i + prefix.len()]);
         if groups.len() >= 4 && groups[..4].iter().all(|g| !g.is_empty()) {
-            out.push_str("<machine>-");
-            out.push_str(&groups[3..].join("-"));
+            out.push_str(&replace(&groups));
         } else {
             out.push_str(&after[..len]);
         }
@@ -875,6 +884,23 @@ mod tests {
         assert_eq!(scrub_personal(plain), plain);
     }
 
+    /// Tester's round 5: on a PC joined to Microsoft Entra ID the desktop user's SID is
+    /// `S-1-12-1-…`, four numbers that are the account's object id.
+    #[test]
+    fn entra_id_account_sids_are_scrubbed() {
+        let s = scrub_personal(
+            "settings in HKEY_USERS\\S-1-12-1-1234567890-1122334455-2233445566-3344556677_Classes; \
+             also S-1-12-1-1-2-3-4; S-1-5-21-11-22-33-1001",
+        );
+        assert!(!s.contains("1234567890") && !s.contains("3344556677"), "{s}");
+        assert!(s.contains("HKEY_USERS\\S-1-12-1-<account>_Classes"), "{s}");
+        assert!(s.contains("also S-1-12-1-<account>;"), "{s}");
+        assert!(s.contains("S-1-5-21-<machine>-1001"), "{s}");
+        // Too short to be an account: left alone; scrubbing twice changes nothing more.
+        assert_eq!(scrub_personal("S-1-12-1-5"), "S-1-12-1-5");
+        assert_eq!(scrub_personal(&s), s);
+    }
+
     /// Long "group / name" labels no longer shift the columns.
     #[test]
     fn table_columns_fit_the_longest_cell() {
@@ -922,5 +948,170 @@ mod tests {
         assert!(dynamic_lighting_section().contains("(desktop user, "));
         assert!(conflicts_section().starts_with("\nConflicting software:"));
         assert!(timestamp().ends_with(" UTC)"));
+    }
+
+    // ---- independent tester, round 6 (2de2c55: scrub_sid_kind, Entra ID SIDs, --diag line) ----
+
+    /// `scrub_sids` exactly as it was before 2de2c55 (aefad81), for byte-for-byte comparison.
+    fn scrub_sids_before(text: &str) -> String {
+        const PREFIX: &str = "S-1-5-21-";
+        let mut out = String::with_capacity(text.len());
+        let mut rest = text;
+        while let Some(i) = rest.find(PREFIX) {
+            let after = &rest[i + PREFIX.len()..];
+            let len = after.find(|c: char| !(c.is_ascii_digit() || c == '-')).unwrap_or(after.len());
+            let groups: Vec<&str> = after[..len].split('-').collect();
+            out.push_str(&rest[..i + PREFIX.len()]);
+            if groups.len() >= 4 && groups[..4].iter().all(|g| !g.is_empty()) {
+                out.push_str("<machine>-");
+                out.push_str(&groups[3..].join("-"));
+            } else {
+                out.push_str(&after[..len]);
+            }
+            rest = &after[len..];
+        }
+        out.push_str(rest);
+        out
+    }
+
+    /// The tester's own reading of the Entra ID rule: `S-1-12-1-` and at least four non-empty number
+    /// groups become `S-1-12-1-<account>`, further groups kept after a dash; anything else stays.
+    fn scrub_entra_reference(text: &str) -> String {
+        const P: &str = "S-1-12-1-";
+        let mut out = String::new();
+        let mut i = 0;
+        while let Some(k) = text[i..].find(P) {
+            let start = i + k + P.len();
+            let run_len = text[start..].bytes().take_while(|b| b.is_ascii_digit() || *b == b'-').count();
+            let run = &text[start..start + run_len];
+            let parts: Vec<&str> = run.split('-').collect();
+            out.push_str(&text[i..start]);
+            if parts.len() >= 4 && parts[..4].iter().all(|p| !p.is_empty()) {
+                out.push_str("<account>");
+                for p in &parts[4..] {
+                    out.push('-');
+                    out.push_str(p);
+                }
+            } else {
+                out.push_str(run);
+            }
+            i = start + run_len;
+        }
+        out.push_str(&text[i..]);
+        out
+    }
+
+    /// Round 6 (tester): the refactor into `scrub_sid_kind` leaves `S-1-5-21-` output byte-identical
+    /// to before, on the round-5 cases and on 20 000 reproducible random lines; the whole of
+    /// `scrub_sids` equals the old function followed by an independent reading of the Entra rule.
+    #[test]
+    fn sid_refactor_is_byte_identical_for_s_1_5_21() {
+        let cases = [
+            "domain user S-1-5-21-3623811015-3361044348-30300820-1013 logged on",
+            "HKEY_USERS\\S-1-5-21-1004336348-1177238915-682003330-1001",
+            "hive S-1-5-21-1004336348-1177238915-682003330-1001_Classes opened",
+            "a S-1-5-21-1004336348-1177238915-682003330-500, b \"S-1-5-21-3623811015-3361044348-30300820-1013\"",
+            "machine SID S-1-5-21-1004336348-1177238915-682003330",
+            "prefix S-1-5-21-1004336348-1177238915-682003330- end",
+            "S-1-5-21-1-2-3-4-5-6-",
+            "S-1-5-21--1-2-3",
+            "S-1-5-21-",
+            "S-1-5-18 S-1-5-32-544 S-1-5-21",
+            "é S-1-5-21-1-2-3-4é 日本",
+        ];
+        for c in cases {
+            assert_eq!(scrub_sids(c), scrub_sids_before(c), "{c}");
+        }
+        let pieces = [
+            "S-1-5-21-",
+            "S-1-12-1-",
+            "S-1-",
+            "12",
+            "-1-",
+            "-",
+            "1004336348",
+            "7",
+            "0",
+            "_Classes",
+            "\\",
+            " ",
+            "\"",
+            "é",
+            "日本",
+            "S",
+            "<machine>",
+            "<account>",
+            "x",
+        ];
+        let mut seed = 0xC0FF_EE15_600D_F00Du64;
+        let mut rnd = move |n: usize| {
+            seed ^= seed << 13;
+            seed ^= seed >> 7;
+            seed ^= seed << 17;
+            (seed % n as u64) as usize
+        };
+        for _ in 0..20_000 {
+            let mut s = String::new();
+            for _ in 0..rnd(20) + 1 {
+                s.push_str(pieces[rnd(pieces.len())]);
+            }
+            let want = scrub_entra_reference(&scrub_sids_before(&s));
+            let got = scrub_sids(&s);
+            assert_eq!(got, want, "{s:?}");
+            assert_eq!(scrub_sids(&got), got, "not idempotent: {s:?}");
+            if !s.contains("S-1-12-1-") {
+                assert_eq!(got, scrub_sids_before(&s), "{s:?}");
+            }
+        }
+    }
+
+    /// Round 6 (tester): Entra ID SID shapes. Exactly four groups, more (kept after the marker), the
+    /// `_Classes` hive, end of line, quotes and Debug output, two in a row, glued to letters or to an
+    /// `S-1-5-21-` SID in either order; and what must stay: fewer than four groups, an empty group
+    /// among the first four, `S-1-12-11-`, the bare prefix. Scrubbing twice changes nothing more.
+    #[test]
+    fn entra_id_sid_shapes() {
+        let cases = [
+            ("S-1-12-1-1-2-3-4", "S-1-12-1-<account>"),
+            ("x S-1-12-1-3412569011-1171233452-2311236254-1394823476 y", "x S-1-12-1-<account> y"),
+            ("S-1-12-1-1-2-3-4-5-6", "S-1-12-1-<account>-5-6"),
+            ("S-1-12-1-1-2-3-4-", "S-1-12-1-<account>-"),
+            ("S-1-12-1-1-2-3-4_Classes", "S-1-12-1-<account>_Classes"),
+            ("'S-1-12-1-1-2-3-4'", "'S-1-12-1-<account>'"),
+            ("S-1-12-1-1-2-3-4,S-1-12-1-5-6-7-8", "S-1-12-1-<account>,S-1-12-1-<account>"),
+            ("S-1-12-1-1-2-3-4S-1-5-21-5-6-7-1001", "S-1-12-1-<account>S-1-5-21-<machine>-1001"),
+            ("S-1-5-21-5-6-7-1001S-1-12-1-1-2-3-4", "S-1-5-21-<machine>-1001S-1-12-1-<account>"),
+            ("é S-1-12-1-1-2-3-4é", "é S-1-12-1-<account>é"),
+            ("S-1-12-1-1-2-3", "S-1-12-1-1-2-3"),
+            ("S-1-12-1-1--3-4", "S-1-12-1-1--3-4"),
+            ("S-1-12-1--1-2-3-4", "S-1-12-1--1-2-3-4"),
+            ("S-1-12-11-1-2-3-4", "S-1-12-11-1-2-3-4"),
+            ("S-1-12-1-", "S-1-12-1-"),
+            ("S-1-12-2-1-2-3-4", "S-1-12-2-1-2-3-4"),
+        ];
+        for (input, want) in cases {
+            let got = scrub_personal(input);
+            assert_eq!(got, want, "{input}");
+            assert_eq!(scrub_personal(&got), got, "{input}");
+        }
+        let dbg = format!("{:?}", "HKEY_USERS\\S-1-12-1-3412569011-1171233452-2311236254-1394823476\\Software");
+        let got = scrub_personal(&dbg);
+        assert!(!got.contains("3412569011") && got.contains("S-1-12-1-<account>\\\\Software"), "{got}");
+    }
+
+    /// Round 6 (tester), the `--diag` closing line (main.rs): built the way `run_diag` builds it, for
+    /// the report in the user's profile (no elevation) and for a write error, it keeps no account name
+    /// once it has gone through `scrub_personal`, and keeps the rest of the line.
+    #[test]
+    fn diag_closing_line_is_scrubbed() {
+        let path = std::path::Path::new("C:\\Users\\Aoife Byrne\\AppData\\Local\\FanRGB\\diagnostics.txt");
+        let ok = format!("Report written to {}", path.display());
+        assert_eq!(scrub_personal(&ok), "Report written to C:\\Users\\<user>\\AppData\\Local\\FanRGB\\diagnostics.txt");
+        let e = std::io::Error::from_raw_os_error(5);
+        let err = format!("[{}] could not write {}: {e}", crate::error::ErrorCode::Io, path.display());
+        let s = scrub_personal(&err);
+        assert!(!s.contains("Aoife") && s.contains("\\Users\\<user>\\AppData") && s.contains("(os error 5)"), "{s}");
+        let elevated = "Report written to C:\\ProgramData\\FanRGB\\diagnostics.txt";
+        assert_eq!(scrub_personal(elevated), elevated);
     }
 }
