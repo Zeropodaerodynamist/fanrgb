@@ -13,7 +13,8 @@ been tested on real hardware so far (see *Status*).
 
 Early and experimental: version 0.2.0 is a **beta**, distributed as a download but not yet as a signed GitHub
 release. Before trying it, read [docs/HARDWARE.md](docs/HARDWARE.md) (what it was tested on) and follow
-[docs/TESTING.md](docs/TESTING.md) (a safe step-by-step first run). The code had an independent security audit
+[docs/TESTING.md](docs/TESTING.md) (a safe step-by-step first run); to adapt it to your own PC, see
+[docs/CUSTOMISING.md](docs/CUSTOMISING.md). The code had an independent security audit
 before publication ([docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md)). Automated tests cover the control logic
 against simulated hardware and a mock register file, though not every path (some tests are marked ignored). On
 the reference PC above, the first real-hardware checks have passed (recovery from an unclean exit, fan
