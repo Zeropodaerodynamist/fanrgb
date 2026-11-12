@@ -34,6 +34,28 @@ Fan headers on this board, as FanRGB names them, and the floor each keeps whatev
 Close to the critical CPU temperature every fan FanRGB drives also has a hard minimum (up to 75 %), and at the
 critical temperature itself everything goes to 100 %.
 
+### What was checked on it (0.2.0 beta, 12 November 2026)
+
+The release exe ran on this PC in place of the installed copy, at idle (CPU 37 to 40 °C), and was switched
+through every mode with its keyboard shortcuts. Fan speeds are the radiator fans (SYS_FAN1) and case fans
+(SYS_FAN2); the pump has no speed signal.
+
+| Check | Measured | Result |
+| --- | --- | --- |
+| BIOS baseline, FanRGB closed | 870 and 1,810 RPM | reference |
+| Silent | 505 and 1,390 RPM | quieter than the BIOS |
+| Balanced | 592 and 1,655 RPM | as set |
+| Auto (AI), fans not calibrated | 670 to 780 and 1,550 to 1,710 RPM | as set |
+| Full speed | 1,515 and 3,290 RPM (3.0 and 2.4 times Silent) | pass |
+| BIOS mode | 768 and 1,667 RPM (0.88 and 0.92 of the baseline, CPU 2 °C cooler) | pass |
+| Back to Silent | 505 and 1,316 RPM | pass |
+| Pump floor | the CPU_FAN chip shows "Min 30 %" (checked on the previous build; the floor code is unchanged) | pass |
+| Hand-back on exit | fan-control registers (bank 0 rows 0x10, 0x60, 0x70, 0xA0) identical to before | pass |
+| Privacy | no account name or full account SID in the reports or the log | pass |
+
+Not yet checked on real hardware: the chip's own failsafe at 90 °C, the crash watchdog's recovery,
+sleep and resume, and the lighting after a power drain.
+
 ## Requirements
 
 | | Needed |

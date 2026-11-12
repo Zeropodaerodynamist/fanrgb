@@ -17,9 +17,11 @@ release. Before trying it, read [docs/HARDWARE.md](docs/HARDWARE.md) (what it wa
 [docs/CUSTOMISING.md](docs/CUSTOMISING.md). The code had an independent security audit
 before publication ([docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md)). Automated tests cover the control logic
 against simulated hardware and a mock register file, though not every path (some tests are marked ignored). On
-the reference PC above, the first real-hardware checks have passed (recovery from an unclean exit, fan
-identification, replacing a running copy); the rest of the checklist (hardware failsafe, RGB after a power
-drain, sleep/resume, watchdog) is still open, and no other board has been tested. Start with
+the reference PC above, the 0.2.0 beta passed its hardware check on 12 November 2026: every fan mode, the pump's
+minimum speed, the hand-back to the BIOS on exit and reports free of the account name (results in
+[docs/HARDWARE.md](docs/HARDWARE.md)); earlier checks covered recovery from an unclean exit, fan identification
+and replacing a running copy. Still open: the hardware failsafe, RGB after a power drain, sleep/resume and the
+watchdog's recovery, and no other board has been tested. Start with
 `fanrgb.exe --diag` and the BIOS profile, and watch the first manual fan change.
 
 ## Features
