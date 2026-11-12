@@ -1,5 +1,9 @@
 # FanRGB
 
+> **Works only on GIGABYTE motherboards with an AMD Ryzen CPU.** Intel CPUs and other motherboard brands are not
+> supported. So far it has been tested on one board, the B650M D3HP AX; on any other GIGABYTE board, start with
+> the read-only report in [docs/TESTING.md](docs/TESTING.md).
+
 Fan control and RGB lighting for Gigabyte motherboards (ITE Super I/O + RGB Fusion 2 USB), written in Rust
 as a native Windows app. A lightweight, safety-first replacement for GIGABYTE Control Center / RGB Fusion /
 EasyTune.
