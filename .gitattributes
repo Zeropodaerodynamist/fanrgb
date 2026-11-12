@@ -1,0 +1,20 @@
+# Text is stored with LF in the repository whatever the committer's core.autocrlf says.
+* text=auto
+# Bytes that are signed or compared byte for byte: never convert line endings.
+catalog/drivers.json -text
+catalog/*.minisig -text
+tools/driver-catalog/tests/fixtures/** -text
+# Shell steps in workflows and the Python fetcher run on Linux runners.
+.github/workflows/*.yml text eol=lf
+tools/driver-catalog/**/*.py text eol=lf
+# Windows scripts keep CRLF in the working tree.
+*.ps1 text eol=crlf
+# Binary assets: never converted, never diffed as text. The PawnIO modules are signed and their
+# SHA-256 is pinned in src/hw/pawnio.rs.
+*.png binary
+*.ico binary
+*.ttf binary
+*.bin binary
+*.gz binary
+assets/pawnio/COPYING -text
+assets/pawnio/README -text

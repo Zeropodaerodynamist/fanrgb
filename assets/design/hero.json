@@ -1,0 +1,430 @@
+{
+ "about": "FanRGB hero render. Logical size = size_1x points. Draw base, then each LED segment additively.",
+ "size_1x": [
+  440,
+  480
+ ],
+ "atlas_size": [
+  1024,
+  1135
+ ],
+ "anchors": {
+  "pump": [
+   0.4078,
+   0.2631
+  ],
+  "gpu": [
+   0.4485,
+   0.4383
+  ],
+  "radiator": [
+   0.464,
+   0.1698
+  ],
+  "front1": [
+   0.799,
+   0.3061
+  ],
+  "front2": [
+   0.7908,
+   0.5342
+  ],
+  "front3": [
+   0.783,
+   0.7502
+  ],
+  "rear": [
+   0.2547,
+   0.2746
+  ],
+  "cpu_fan_header": [
+   0.5075,
+   0.1744
+  ],
+  "sys_fan1_header": [
+   0.6277,
+   0.3658
+  ],
+  "sys_fan2_header": [
+   0.6267,
+   0.4301
+  ],
+  "dled1": [
+   0.5298,
+   0.4639
+  ],
+  "dled2": [
+   0.4536,
+   0.4515
+  ],
+  "ledc": [
+   0.3802,
+   0.4396
+  ]
+ },
+ "segments": [
+  {
+   "key": "front1.0",
+   "fan": "front1",
+   "segment": 0,
+   "rect": [
+    251,
+    71,
+    406,
+    215
+   ],
+   "atlas": [
+    464,
+    986,
+    155,
+    144
+   ]
+  },
+  {
+   "key": "front1.1",
+   "fan": "front1",
+   "segment": 1,
+   "rect": [
+    251,
+    79,
+    404,
+    228
+   ],
+   "atlas": [
+    0,
+    986,
+    153,
+    149
+   ]
+  },
+  {
+   "key": "front1.2",
+   "fan": "front1",
+   "segment": 2,
+   "rect": [
+    227,
+    73,
+    401,
+    237
+   ],
+   "atlas": [
+    557,
+    805,
+    174,
+    164
+   ]
+  },
+  {
+   "key": "front1.3",
+   "fan": "front1",
+   "segment": 3,
+   "rect": [
+    94,
+    72,
+    401,
+    218
+   ],
+   "atlas": [
+    155,
+    986,
+    307,
+    146
+   ]
+  },
+  {
+   "key": "front2.0",
+   "fan": "front2",
+   "segment": 0,
+   "rect": [
+    203,
+    136,
+    401,
+    447
+   ],
+   "atlas": [
+    352,
+    0,
+    198,
+    311
+   ]
+  },
+  {
+   "key": "front2.1",
+   "fan": "front2",
+   "segment": 1,
+   "rect": [
+    250,
+    186,
+    400,
+    444
+   ],
+   "atlas": [
+    320,
+    314,
+    150,
+    258
+   ]
+  },
+  {
+   "key": "front2.2",
+   "fan": "front2",
+   "segment": 2,
+   "rect": [
+    243,
+    161,
+    396,
+    346
+   ],
+   "atlas": [
+    636,
+    616,
+    153,
+    185
+   ]
+  },
+  {
+   "key": "front2.3",
+   "fan": "front2",
+   "segment": 3,
+   "rect": [
+    236,
+    144,
+    397,
+    324
+   ],
+   "atlas": [
+    791,
+    616,
+    161,
+    180
+   ]
+  },
+  {
+   "key": "front3.0",
+   "fan": "front3",
+   "segment": 0,
+   "rect": [
+    219,
+    235,
+    397,
+    448
+   ],
+   "atlas": [
+    472,
+    314,
+    178,
+    213
+   ]
+  },
+  {
+   "key": "front3.1",
+   "fan": "front3",
+   "segment": 1,
+   "rect": [
+    203,
+    290,
+    395,
+    448
+   ],
+   "atlas": [
+    733,
+    805,
+    192,
+    158
+   ]
+  },
+  {
+   "key": "front3.2",
+   "fan": "front3",
+   "segment": 2,
+   "rect": [
+    303,
+    256,
+    392,
+    451
+   ],
+   "atlas": [
+    744,
+    314,
+    89,
+    195
+   ]
+  },
+  {
+   "key": "front3.3",
+   "fan": "front3",
+   "segment": 3,
+   "rect": [
+    303,
+    245,
+    393,
+    448
+   ],
+   "atlas": [
+    652,
+    314,
+    90,
+    203
+   ]
+  },
+  {
+   "key": "pump.0",
+   "fan": "pump",
+   "segment": 0,
+   "rect": [
+    41,
+    59,
+    335,
+    246
+   ],
+   "atlas": [
+    0,
+    616,
+    294,
+    187
+   ]
+  },
+  {
+   "key": "pump.1",
+   "fan": "pump",
+   "segment": 1,
+   "rect": [
+    39,
+    68,
+    394,
+    247
+   ],
+   "atlas": [
+    0,
+    805,
+    355,
+    179
+   ]
+  },
+  {
+   "key": "pump.2",
+   "fan": "pump",
+   "segment": 2,
+   "rect": [
+    40,
+    60,
+    378,
+    247
+   ],
+   "atlas": [
+    296,
+    616,
+    338,
+    187
+   ]
+  },
+  {
+   "key": "pump.3",
+   "fan": "pump",
+   "segment": 3,
+   "rect": [
+    43,
+    59,
+    241,
+    230
+   ],
+   "atlas": [
+    357,
+    805,
+    198,
+    171
+   ]
+  },
+  {
+   "key": "rear.0",
+   "fan": "rear",
+   "segment": 0,
+   "rect": [
+    60,
+    62,
+    378,
+    362
+   ],
+   "atlas": [
+    0,
+    314,
+    318,
+    300
+   ]
+  },
+  {
+   "key": "rear.1",
+   "fan": "rear",
+   "segment": 1,
+   "rect": [
+    66,
+    85,
+    379,
+    198
+   ],
+   "atlas": [
+    621,
+    986,
+    313,
+    113
+   ]
+  },
+  {
+   "key": "rear.2",
+   "fan": "rear",
+   "segment": 2,
+   "rect": [
+    44,
+    71,
+    394,
+    383
+   ],
+   "atlas": [
+    0,
+    0,
+    350,
+    312
+   ]
+  },
+  {
+   "key": "rear.3",
+   "fan": "rear",
+   "segment": 3,
+   "rect": [
+    43,
+    60,
+    393,
+    362
+   ],
+   "atlas": [
+    552,
+    0,
+    350,
+    302
+   ]
+  }
+ ],
+ "fans": {
+  "front1": {
+   "label": "Front fan 1 (top)",
+   "size_mm": 140
+  },
+  "front2": {
+   "label": "Front fan 2",
+   "size_mm": 140
+  },
+  "front3": {
+   "label": "Front fan 3 (bottom)",
+   "size_mm": 140
+  },
+  "rear": {
+   "label": "Rear fan",
+   "size_mm": 120
+  },
+  "pump": {
+   "label": "AIO pump",
+   "size_mm": 0
+  }
+ },
+ "segment_order": "0 = 12 o'clock, then clockwise as seen from the LED face"
+}

@@ -1,0 +1,38 @@
+[package]
+name = "fanrgb-release"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "Apache-2.0"
+description = "FanRGB release tooling: signing keys, release manifest, minisign signatures. Never shipped."
+
+# Stand-alone (not a member of the app's package): the signing code and its dependencies never end up
+# in fanrgb.exe or in the app's Cargo.lock.
+[workspace]
+
+[dependencies]
+# Signing (minisign file format, Ed25519, scrypt-protected keys optional). Same author as minisign-verify.
+minisign = "=0.10.0"
+# The verifier the app itself uses: a signature this tool writes is checked by the same code.
+minisign-verify = "=0.3.0"
+# Encrypts an existing unencrypted key in place (`protect-keys`) with the same KDF minisign uses. Already in
+# the tree as a dependency of `minisign` (same version, same features), so no new crate.
+scrypt = { version = "=0.11.0", default-features = false }
+serde_json = "1"
+sha2 = "0.10"
+
+# Key files, ACLs and console password prompts are Windows-only; `catalog-sign` and `catalog-verify` also
+# build on the Linux CI runner that signs the weekly driver catalog.
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_Security_Cryptography",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Console",
+    "Win32_System_Threading",
+] }
+
+[profile.release]
+opt-level = 3

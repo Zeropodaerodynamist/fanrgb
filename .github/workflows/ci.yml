@@ -1,0 +1,238 @@
+# CI for the FanRGB app (docs/RELEASING.md): on every push and pull
+# request, and on tags v*. Windows runners (the app is Windows-only); the toolchain comes from
+# rust-toolchain.toml. Required checks for main: fmt, clippy, test, audit, build-release.
+#
+# clippy: the shipped code (bin target) must have no warning except the 7 known pre-v0.2 style lints,
+# which are allowed by name (needless_range_loop x6, neg_cmp_op_on_partial_ord x1): any other lint
+# fails the job. Test code (--all-targets) has older style lints and fails only on clippy errors.
+#
+# Third-party actions are pinned by full commit SHA (the tag in the comment); permissions are minimal
+# and widened per job only where needed (the tag-only provenance job).
+
+name: ci
+
+on:
+  push:
+    branches-ignore:
+      - catalog
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # Never cancel a tag build (its artefacts are the release evidence).
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUSTUP_MAX_RETRIES: "10"
+  CARGO_NET_RETRY: "10"
+
+jobs:
+  fmt:
+    name: fmt
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned toolchain (rust-toolchain.toml)
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          rustup toolchain install "$channel" --profile minimal --component rustfmt,clippy --no-self-update
+          rustc -V && cargo fmt --version
+      - name: cargo fmt --check
+        run: cargo fmt --all --check
+
+  clippy:
+    name: clippy
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned toolchain (rust-toolchain.toml)
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          rustup toolchain install "$channel" --profile minimal --component rustfmt,clippy --no-self-update
+          rustc -V && cargo clippy --version
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          shared-key: release
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - name: Shipped code, no new warnings
+        run: >-
+          cargo clippy --release --locked --
+          -D warnings
+          -A clippy::needless_range_loop
+          -A clippy::neg_cmp_op_on_partial_ord
+      - name: All targets incl. tests (fails on clippy errors only)
+        run: cargo clippy --release --all-targets --locked
+
+  test:
+    name: test
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned toolchain (rust-toolchain.toml)
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          rustup toolchain install "$channel" --profile minimal --component rustfmt,clippy --no-self-update
+          rustc -V
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          shared-key: release
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      # A private TEMP/TMP per job (the tests also make their own per-process folders).
+      - name: Private temp folder
+        shell: pwsh
+        run: |
+          $d = Join-Path $env:RUNNER_TEMP "fanrgb-test-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          New-Item -ItemType Directory -Force -Path $d | Out-Null
+          "TEMP=$d" >> $env:GITHUB_ENV
+          "TMP=$d" >> $env:GITHUB_ENV
+      - name: cargo test --release --locked
+        run: cargo test --release --locked
+
+  audit:
+    name: audit
+    runs-on: windows-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned toolchain (rust-toolchain.toml)
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          rustup toolchain install "$channel" --profile minimal --no-self-update
+      - uses: taiki-e/install-action@83ac0ad63c0167e6f06796fab0fce28db1bf3db0 # v2.87.22
+        with:
+          tool: cargo-audit@0.22.2,cargo-deny@0.20.2
+      # Vulnerabilities fail; unmaintained / unsound warnings are reported here and judged by
+      # cargo-deny below against the Windows graph and the reasons in deny.toml.
+      - name: cargo audit
+        run: cargo audit
+      - name: cargo deny (advisories, licenses, bans, sources)
+        run: cargo deny --locked check advisories licenses bans sources
+
+  build-release:
+    name: build-release
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned toolchain (rust-toolchain.toml)
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          rustup toolchain install "$channel" --profile minimal --no-self-update
+          rustc -V
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          shared-key: release
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - name: cargo build --release --locked
+        run: cargo build --release --locked
+      - name: SHA-256 to the job summary
+        run: |
+          {
+            echo "### fanrgb.exe at ${GITHUB_SHA}"
+            echo '```'
+            sha256sum target/release/fanrgb.exe target/release/fanrgb.pdb
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      # The PDB matters: strip = "debuginfo" leaves the exe without symbols, and a WER crash dump
+      # (for example from the Arc GL driver) is only readable with the matching PDB.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fanrgb-${{ github.sha }}
+          path: |
+            target/release/fanrgb.exe
+            target/release/fanrgb.pdb
+          retention-days: 14
+          if-no-files-found: error
+
+  # Tags v*: the CI build of the tagged commit with its dependency list inside (cargo auditable), a
+  # CycloneDX SBOM and a build-provenance attestation. Evidence next to the release, which the
+  # maintainer builds and signs on the PC (docs/RELEASING.md): compare the SHA-256 in the summary.
+  provenance:
+    name: provenance
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [fmt, clippy, test, audit, build-release]
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned toolchain (rust-toolchain.toml)
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          rustup toolchain install "$channel" --profile minimal --no-self-update
+          rustc -V
+      - uses: taiki-e/install-action@83ac0ad63c0167e6f06796fab0fce28db1bf3db0 # v2.87.22
+        with:
+          tool: cargo-auditable@0.7.6,cargo-cyclonedx@0.5.9
+      - name: cargo auditable build --release --locked
+        run: cargo auditable build --release --locked
+      - name: CycloneDX SBOM
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          mkdir -p dist
+          cargo cyclonedx --format json --target x86_64-pc-windows-msvc
+          sbom=$(ls ./*.cdx.json 2>/dev/null | head -n 1)
+          test -n "$sbom" || { echo "no SBOM written"; ls; exit 1; }
+          mv "$sbom" "dist/fanrgb-${TAG}.cdx.json"
+          cp target/release/fanrgb.exe target/release/fanrgb.pdb dist/
+          {
+            echo "### ${TAG} (${GITHUB_SHA}), CI build"
+            echo '```'
+            (cd dist && sha256sum ./*)
+            echo '```'
+            echo "Compare fanrgb.exe with \`asset.sha256\` in the release's release.json (informational until the build is reproducible)."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fanrgb-${{ github.ref_name }}-ci
+          path: dist/
+          retention-days: 90
+          if-no-files-found: error
+      # Artifact attestations need a public repository or GitHub Enterprise Cloud; on a private
+      # repository on another plan the API refuses, so this step must not fail the tag build.
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        continue-on-error: true
+        with:
+          subject-path: |
+            dist/fanrgb.exe
+            dist/fanrgb-${{ github.ref_name }}.cdx.json

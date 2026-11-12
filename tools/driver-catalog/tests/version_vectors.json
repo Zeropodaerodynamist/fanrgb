@@ -1,0 +1,39 @@
+{
+  "description": "Shared test vectors for the version schemes: the app (src/drivers/catalog/version.rs) and the CI fetcher (drivercat/versions.py) must both give these answers. 'expect' is how 'latest' relates to 'installed': newer, equal, older or none (not comparable).",
+  "compare": [
+    {"scheme": "intel-gfx", "installed": "32.0.101.9033", "latest": "32.0.101.9150", "expect": "newer", "why": "this PC"},
+    {"scheme": "intel-gfx", "installed": "32.0.101.9150", "latest": "32.0.101.9150", "expect": "equal"},
+    {"scheme": "intel-gfx", "installed": "32.0.101.9150", "latest": "32.0.101.9034", "expect": "older"},
+    {"scheme": "intel-gfx", "installed": "32.0.101.9033", "latest": "31.0.101.9150", "expect": "newer", "why": "the OS/DirectX prefix is not part of the order"},
+    {"scheme": "intel-gfx", "installed": "30.0.100.9955", "latest": "30.0.101.1191", "expect": "newer", "why": "a newer branch"},
+    {"scheme": "intel-gfx", "installed": "32.0.101.9999", "latest": "32.0.101.10001", "expect": "newer", "why": "numeric, not text"},
+    {"scheme": "intel-gfx", "installed": "32.0.101.9033", "latest": "32.0.101.9150 WHQL", "expect": "none"},
+    {"scheme": "amd-chipset", "installed": "8.03.25.247", "latest": "8.08.12.551", "expect": "newer", "why": "this PC"},
+    {"scheme": "amd-chipset", "installed": "7.11.26.2142", "latest": "8.01.20.513", "expect": "newer"},
+    {"scheme": "amd-chipset", "installed": "8.09.30.999", "latest": "8.10.01.100", "expect": "newer"},
+    {"scheme": "amd-chipset", "installed": "8.8.12.551", "latest": "8.08.12.551", "expect": "equal", "why": "installed without the leading zero"},
+    {"scheme": "amd-chipset", "installed": "8.10.01.100", "latest": "8.09.30.999", "expect": "older"},
+    {"scheme": "realtek-lan", "installed": "1125.29.50.202", "latest": "11.031.50", "expect": "newer", "why": "this PC (NetAdapterCx)"},
+    {"scheme": "realtek-lan", "installed": "1125.31.50.202", "latest": "11.031.20", "expect": "equal", "why": "the variant is not a build"},
+    {"scheme": "realtek-lan", "installed": "10.68.815.2024", "latest": "10.80.50", "expect": "newer", "why": "NDIS"},
+    {"scheme": "realtek-lan", "installed": "10.80.1006.2025", "latest": "11.031.50", "expect": "none", "why": "NDIS vs NetAdapterCx"},
+    {"scheme": "realtek-lan", "installed": "1125.29.50.202", "latest": "10.80.50", "expect": "none"},
+    {"scheme": "numeric", "installed": "6001.16.172.0", "latest": "6001.16.180.0", "expect": "newer"},
+    {"scheme": "numeric", "installed": "6.0.9927.1", "latest": "6.0.10000.1", "expect": "newer"},
+    {"scheme": "numeric", "installed": "1.2.0.0", "latest": "1.2", "expect": "equal"},
+    {"scheme": "numeric", "installed": "1.2.0.1", "latest": "1.2", "expect": "older"},
+    {"scheme": "gigabyte-bios", "installed": "F36d", "latest": "F37", "expect": "newer"},
+    {"scheme": "gigabyte-bios", "installed": "F36d", "latest": "F36D", "expect": "equal"},
+    {"scheme": "gigabyte-bios", "installed": "F36", "latest": "F36a", "expect": "newer", "why": "a suffix is a later build"},
+    {"scheme": "gigabyte-bios", "installed": "F36d", "latest": "F36", "expect": "older"},
+    {"scheme": "gigabyte-bios", "installed": "F9", "latest": "F10", "expect": "newer"},
+    {"scheme": "gigabyte-bios", "installed": " F36d ", "latest": "F37", "expect": "newer", "why": "the installed value is trimmed"}
+  ],
+  "invalid_latest": [
+    {"scheme": "intel-gfx", "values": ["32.0.101", "32.0.101.9150.1", "32.0.1010.9150", "32.0.101.91", "v32.0.101.9150", "", "32.0.101.9150\n"]},
+    {"scheme": "amd-chipset", "values": ["8.8.12.551", "8.08.12", "8.08.12.55", "108.08.12.551", "8.08.1a.551"]},
+    {"scheme": "realtek-lan", "values": ["10.80", "12.01.50", "11.031.50.1", "11.a.50"]},
+    {"scheme": "numeric", "values": ["1", "1.2.3.4.5.6", "1..2", "1.2a", " 1.2", "1.9999999999"]},
+    {"scheme": "gigabyte-bios", "values": ["36d", "F", "FA", "F36dd", "F1234", "F36-d", "G36", "F 36", "F36d ", "F36d\n"]}
+  ]
+}

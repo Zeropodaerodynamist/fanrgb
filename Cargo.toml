@@ -1,0 +1,93 @@
+[package]
+name = "fanrgb"
+version = "0.2.0"
+edition = "2024"
+description = "AI fan control and RGB lighting for Gigabyte (ITE) motherboards"
+license = "Apache-2.0 AND MPL-2.0"
+build = "build.rs"
+# An application, never published to crates.io (cargo-deny treats it as private, deny.toml).
+publish = false
+
+[dependencies]
+anyhow = "1"
+cpal = "0.18"
+eframe = { version = "=0.33.3", default-features = false, features = ["default_fonts", "glow", "persistence"] }
+egui = "=0.33.3"
+hidapi = "2.6"
+log = "0.4"
+# Verifies the release manifest's minisign (Ed25519) signature for self-update. Zero dependencies,
+# ~2.9k lines including its own Ed25519/BLAKE2b; by minisign's author, also used by Tauri's updater.
+minisign-verify = "=0.3.0"
+# Decodes the embedded design renders. Already in the tree through
+# eframe → arboard → image, so no new crate is compiled.
+png = "0.18"
+raw-window-handle = "0.6"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tray-icon = "0.26"
+# COM bindings for the Task Scheduler API (autostart registration without temp files) and, only in
+# the unelevated `--driver-check` helper, the Windows Update Agent and Network List Manager.
+# Same version that is already in the dependency tree (no new crates).
+windows = { version = "0.62", features = [
+    "Win32_Foundation",
+    "Win32_Networking_NetworkListManager",
+    "Win32_System_Com",
+    "Win32_System_Ole",
+    "Win32_System_TaskScheduler",
+    "Win32_System_UpdateAgent",
+    "Win32_System_Variant",
+] }
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+    "Win32_System_JobObjects",
+    "Win32_System_Ioctl",
+    "Win32_System_Threading",
+    "Win32_System_Registry",
+    "Win32_System_Services",
+    "Win32_System_SystemInformation",
+    "Win32_System_Performance",
+    "Win32_System_Diagnostics_ToolHelp",
+    "Win32_Devices_DeviceAndDriverInstallation",
+    "Win32_Devices_Properties",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Shell",
+    "Win32_System_Console",
+    "Win32_System_LibraryLoader",
+    "Win32_Graphics_Gdi",
+    "Wdk_Graphics_Direct3D",
+    "Win32_System_Power",
+    "Win32_System_ProcessStatus",
+    "Win32_System_Com",
+    "Win32_System_Memory",
+    "Win32_System_Time",
+    # Self-update: HTTPS through the OS stack (no new TLS dependency) and DPAPI for the access token.
+    "Win32_Networking_WinHttp",
+    "Win32_Security_Cryptography",
+] }
+
+[dev-dependencies]
+# Tests only: signs release-manifest fixtures with throwaway keys (never linked into fanrgb.exe).
+minisign = "=0.10.0"
+
+[build-dependencies]
+embed-resource = "3"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 4
+strip = "debuginfo"
+# Must stay "unwind": the engine's catch_unwind and the panic hook that hands fans back to the
+# BIOS rely on it (main.rs refuses to compile with panic=abort).
+panic = "unwind"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 2

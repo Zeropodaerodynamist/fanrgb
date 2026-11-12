@@ -1,0 +1,73 @@
+# Pull-request and push checks for the driver catalog: the fetcher's parser tests against saved vendor
+# pages, catalog/manual.json against the schema (stale entries are warnings), an offline build from the
+# fixtures, and the signing tool's tests on Linux (the runner that signs the weekly catalog).
+
+name: Driver catalog checks
+
+on:
+  pull_request:
+    paths:
+      - "catalog/**"
+      - "tools/driver-catalog/**"
+      - "tools/fanrgb-release/**"
+      - "src/drivers/catalog/**"
+      - ".github/workflows/driver-catalog*.yml"
+  push:
+    branches-ignore:
+      - catalog
+    paths:
+      - "catalog/**"
+      - "tools/driver-catalog/**"
+      - "tools/fanrgb-release/**"
+      - "src/drivers/catalog/**"
+      - ".github/workflows/driver-catalog*.yml"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: driver-catalog-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  fetcher:
+    name: Fetcher tests and manual entries
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Parser and builder tests (saved HTML fixtures, no network)
+        run: python3 -I -m unittest discover -s tools/driver-catalog/tests -t tools/driver-catalog -v
+
+      - name: Validate catalog/manual.json
+        run: python3 -I tools/driver-catalog/catalog.py check-manual --repo-root .
+
+      - name: Offline build from the fixtures
+        run: |
+          set -euo pipefail
+          python3 -I tools/driver-catalog/catalog.py build --repo-root . --fixtures tools/driver-catalog/tests/fixtures --out out
+          python3 -I tools/driver-catalog/catalog.py validate --repo-root . --catalog out/drivers.json
+          cat out/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+  signer:
+    name: Signing tool on Linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build and test (locked dependencies)
+        run: cargo test --release --locked --manifest-path tools/fanrgb-release/Cargo.toml

@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "description": "Hand-maintained catalog entries, changed only through a reviewed pull request. An entry here replaces the automatic entry with the same id (use it when a vendor blocks the CI fetcher or an adapter is wrong). Set checked_at to the time you confirmed the version on the vendor page; CI flags entries older than 60 days. List ids in allow_downgrade to accept a lower version than the published catalog has (for example after a vendor pulled a release).",
+  "allow_downgrade": [],
+  "entries": [
+    {
+      "id": "amd-chipset-am5",
+      "vendor": "AMD",
+      "component": "AMD Chipset Software (AM5)",
+      "match": { "categories": ["chipset"], "packages": ["AMD Chipset Software"] },
+      "version": "8.08.12.551",
+      "version_scheme": "amd-chipset",
+      "release_date": "2026-08-14",
+      "download_url": "https://www.amd.com/en/support/downloads/drivers.html/chipsets/am5/b650.html",
+      "release_notes_url": null,
+      "source": "manual",
+      "checked_at": "2026-10-19T12:00:00Z"
+    }
+  ]
+}

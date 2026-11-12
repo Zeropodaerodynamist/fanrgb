@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0",
+  "kind": "fanrgb-driver-catalog",
+  "serial": 1,
+  "generated_at": "2026-10-19T18:22:05Z",
+  "expires": "2026-11-09T18:22:05Z",
+  "entries": [
+    {
+      "id": "amd-chipset-am5",
+      "vendor": "AMD",
+      "component": "AMD Chipset Software (AM5)",
+      "match": {
+        "categories": [
+          "chipset"
+        ],
+        "packages": [
+          "AMD Chipset Software"
+        ]
+      },
+      "version": "8.08.12.551",
+      "version_scheme": "amd-chipset",
+      "release_date": "2026-08-14",
+      "download_url": "https://www.amd.com/en/support/downloads/drivers.html/chipsets/am5/b650.html",
+      "release_notes_url": null,
+      "source": "manual",
+      "checked_at": "2026-10-19T12:00:00Z"
+    },
+    {
+      "id": "intel-arc-graphics",
+      "vendor": "Intel",
+      "component": "Intel Arc & Iris Xe Graphics driver",
+      "match": {
+        "categories": [
+          "gpu"
+        ],
+        "hardware_ids": [
+          "PCI\\VEN_8086&DEV_56*",
+          "PCI\\VEN_8086&DEV_E2*",
+          "PCI\\VEN_8086&DEV_7D*",
+          "PCI\\VEN_8086&DEV_64*"
+        ],
+        "providers": [
+          "Intel"
+        ]
+      },
+      "version_scheme": "intel-gfx",
+      "download_url": "https://www.intel.com/content/www/us/en/download/785597/intel-arc-graphics-windows.html",
+      "version": "32.0.101.9150",
+      "release_date": "2026-10-02",
+      "release_notes_url": "https://downloadmirror.intel.com/930514/ReleaseNotes__101.9150_WHQL.pdf",
+      "source": "auto:intel-arc",
+      "checked_at": "2026-10-19T18:22:05Z"
+    },
+    {
+      "id": "realtek-lan-ndis",
+      "vendor": "Realtek",
+      "component": "Realtek PCIe GbE/2.5GbE driver (NDIS, Windows 10/11)",
+      "match": {
+        "categories": [
+          "lan"
+        ],
+        "hardware_ids": [
+          "PCI\\VEN_10EC&DEV_8125*",
+          "PCI\\VEN_10EC&DEV_8126*",
+          "PCI\\VEN_10EC&DEV_8127*",
+          "PCI\\VEN_10EC&DEV_8168*",
+          "PCI\\VEN_10EC&DEV_8161*"
+        ],
+        "providers": [
+          "Realtek"
+        ]
+      },
+      "version_scheme": "realtek-lan",
+      "download_url": "https://www.realtek.com/Download/List?cate_id=584",
+      "version": "10.80.50",
+      "release_date": "2026-10-05",
+      "release_notes_url": null,
+      "source": "auto:realtek-lan",
+      "checked_at": "2026-10-19T18:22:05Z"
+    },
+    {
+      "id": "realtek-lan-netadaptercx",
+      "vendor": "Realtek",
+      "component": "Realtek PCIe GbE/2.5GbE driver (NetAdapterCx, Windows 11)",
+      "match": {
+        "categories": [
+          "lan"
+        ],
+        "hardware_ids": [
+          "PCI\\VEN_10EC&DEV_8125*",
+          "PCI\\VEN_10EC&DEV_8126*",
+          "PCI\\VEN_10EC&DEV_8127*",
+          "PCI\\VEN_10EC&DEV_8168*",
+          "PCI\\VEN_10EC&DEV_8161*"
+        ],
+        "providers": [
+          "Realtek"
+        ]
+      },
+      "version_scheme": "realtek-lan",
+      "download_url": "https://www.realtek.com/Download/List?cate_id=584",
+      "version": "11.031.50",
+      "release_date": "2026-10-05",
+      "release_notes_url": null,
+      "source": "auto:realtek-lan",
+      "checked_at": "2026-10-19T18:22:05Z"
+    }
+  ]
+}

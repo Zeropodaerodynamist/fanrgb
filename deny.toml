@@ -1,0 +1,62 @@
+# cargo-deny policy (CI job "audit"). Run locally with
+#   cargo deny --locked check advisories licenses bans sources
+# Only the graph that reaches fanrgb.exe counts: the Windows MSVC target.
+
+[graph]
+targets = ["x86_64-pc-windows-msvc"]
+
+[advisories]
+version = 2
+db-urls = ["https://github.com/rustsec/advisory-db"]
+yanked = "deny"
+# A vulnerability always fails. An unmaintained / unsound warning in the Windows graph is either fixed
+# or recorded here with a one-line reason and a review date (docs/RELEASING.md).
+ignore = [
+    # ttf-parser 0.25 (via egui -> epaint -> ab_glyph -> owned_ttf_parser): parses only the fonts
+    # embedded in the exe, never user-supplied ones. Follows egui; review at the next eframe bump,
+    # at the latest 2027-04-30.
+    { id = "RUSTSEC-2026-0192", reason = "egui upstream; embedded fonts only; review by 2027-04-30" },
+]
+
+[licenses]
+version = 2
+confidence-threshold = 0.9
+# Permissive licenses of the crates FanRGB links, plus LGPL-2.1 for the PawnIO modules FanRGB embeds
+# (assets/pawnio, shipped with their COPYING notice). Anything else (GPL, AGPL, unknown) fails.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "BSL-1.0",
+    "Unicode-3.0",
+    "OFL-1.1",
+    "Ubuntu-font-1.0",
+    # The PawnIO modules (not a crate, so cargo-deny never "encounters" it); also allowed should a
+    # crate under LGPL-2.1 appear, which then needs the same COPYING notice in the distribution.
+    "LGPL-2.1",
+]
+# LGPL-2.1 above is listed for the embedded modules, not for a crate: no warning for it.
+unused-allowed-license = "allow"
+
+[licenses.private]
+# fanrgb itself (publish = false; Apache-2.0 AND MPL-2.0, see LICENSE and NOTICE) is not a dependency.
+ignore = true
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+# Updates use the Windows TLS stack (WinHTTP); no second TLS implementation in the elevated exe.
+deny = [
+    { name = "openssl" },
+    { name = "openssl-sys" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Zeropodaerodynamist/fanrgb/catalog/schema.json",
+  "title": "FanRGB driver catalog",
+  "description": "Latest vendor driver versions, built weekly by .github/workflows/driver-catalog.yml and signed with the dedicated catalog minisign key (drivers.json.minisig, trusted comment 'fanrgb-catalog serial=<serial> drivers.json'). The app (src/drivers/catalog) enforces everything here plus the signature, the serial replay rule and the URL host allow-list (allowed-hosts.json). schema_version is MAJOR.MINOR: the app refuses another major; a newer minor may only add optional fields, which older apps ignore.",
+  "type": "object",
+  "required": ["schema_version", "kind", "serial", "generated_at", "expires", "entries"],
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^1\\.[0-9]+$" },
+    "kind": { "const": "fanrgb-driver-catalog" },
+    "serial": {
+      "description": "Raised by one for every published catalog. The app refuses a serial lower than one it has seen, and the same serial with different bytes.",
+      "type": "integer", "minimum": 1
+    },
+    "generated_at": { "$ref": "#/$defs/timestamp" },
+    "expires": {
+      "description": "generated_at + 21 days by default (at most 90 days). After it the app still shows the list, marked out of date.",
+      "$ref": "#/$defs/timestamp"
+    },
+    "entries": { "type": "array", "maxItems": 200, "items": { "$ref": "#/$defs/entry" } }
+  },
+  "$defs": {
+    "timestamp": {
+      "description": "UTC, exactly YYYY-MM-DDTHH:MM:SSZ.",
+      "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "text": {
+      "description": "Short display text: no control, invisible or bidi characters, single spaces only.",
+      "type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f\\u00ad\\u061c\\u200b-\\u200f\\u2028-\\u202e\\u2060-\\u206f\\ufeff\\t]+$"
+    },
+    "url": {
+      "description": "https only, on a host listed in allowed-hosts.json, default port, characters A-Z a-z 0-9 - . _ ~ / ? # & = + , ; : only, at most 300 characters.",
+      "type": "string", "maxLength": 300, "pattern": "^https://[a-z0-9.-]+(/[A-Za-z0-9._~/?#&=+,;:-]*)?$"
+    },
+    "entry": {
+      "type": "object",
+      "required": ["id", "vendor", "component", "match", "version", "version_scheme", "download_url", "source", "checked_at"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" },
+        "vendor": { "$ref": "#/$defs/text" },
+        "component": { "$ref": "#/$defs/text" },
+        "match": { "$ref": "#/$defs/match" },
+        "version": {
+          "description": "In the format of version_scheme (see src/drivers/catalog/version.rs).",
+          "type": "string", "minLength": 2, "maxLength": 40
+        },
+        "version_scheme": {
+          "description": "intel-gfx: 32.0.101.NNNN, ordered by the build (third, then fourth part). amd-chipset: x.yy.zz.nnn package version. realtek-lan: package 10.NN.VV (NDIS) or 11.0NN.VV (NetAdapterCx), compared with driver 10.NN.* / 11xx.NN.*. numeric: 2-5 numeric parts. gigabyte-bios: F<number>[letter], F36 < F36a < F36d < F37.",
+          "enum": ["intel-gfx", "amd-chipset", "realtek-lan", "numeric", "gigabyte-bios"]
+        },
+        "release_date": { "type": ["string", "null"], "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "download_url": { "$ref": "#/$defs/url" },
+        "release_notes_url": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/url" }] },
+        "source": { "type": "string", "pattern": "^(manual|auto:[a-z0-9][a-z0-9-]{0,31})$" },
+        "checked_at": {
+          "description": "When the entry was last confirmed against its source (not refreshed when an adapter fails). Not after generated_at.",
+          "$ref": "#/$defs/timestamp"
+        }
+      }
+    },
+    "match": {
+      "description": "All given rules must hold; within a list any value may match. At least one of hardware_ids, packages, board.",
+      "type": "object",
+      "anyOf": [
+        { "required": ["hardware_ids"], "properties": { "hardware_ids": { "minItems": 1 } } },
+        { "required": ["packages"], "properties": { "packages": { "minItems": 1 } } },
+        { "required": ["board"] }
+      ],
+      "properties": {
+        "hardware_ids": {
+          "description": "PnP hardware/compatible ID patterns, case-insensitive, * and ? wildcards, at least 8 literal characters before the first wildcard.",
+          "type": "array", "maxItems": 64,
+          "items": { "type": "string", "maxLength": 200, "pattern": "^[A-Za-z0-9\\\\&_.{}#-]{8,}[A-Za-z0-9\\\\&_.{}#*?-]*$" }
+        },
+        "providers": {
+          "description": "Case-insensitive substrings of the INF provider.",
+          "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/text" }
+        },
+        "categories": {
+          "description": "FanRGB device classes.",
+          "type": "array", "maxItems": 8,
+          "items": { "enum": ["wifi", "bluetooth", "lan", "audio", "chipset", "gpu", "superio", "bios"] }
+        },
+        "packages": {
+          "description": "Installer package names (Windows Uninstall DisplayName), case-insensitive.",
+          "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/text" }
+        },
+        "board": {
+          "type": "object",
+          "required": ["vendor", "product"],
+          "properties": {
+            "vendor": { "$ref": "#/$defs/text" },
+            "product": { "$ref": "#/$defs/text" },
+            "revisions": { "type": "array", "maxItems": 16, "items": { "type": "string", "pattern": "^[0-9.]{1,8}$" } }
+          }
+        }
+      }
+    }
+  }
+}

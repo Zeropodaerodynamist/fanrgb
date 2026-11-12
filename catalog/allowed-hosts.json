@@ -1,0 +1,11 @@
+{
+  "description": "Hosts the driver catalog may link to (download_url, release_notes_url). Must equal util::win::VENDOR_HOSTS in the app (a Rust test checks it); widening it needs an app release, so a catalog key holder cannot add hosts.",
+  "hosts": [
+    "www.intel.com",
+    "downloadmirror.intel.com",
+    "www.amd.com",
+    "www.gigabyte.com",
+    "www.realtek.com",
+    "pawnio.eu"
+  ]
+}

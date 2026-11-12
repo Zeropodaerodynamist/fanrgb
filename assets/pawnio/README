@@ -1,0 +1,18 @@
+Signed PawnIO modules from the official repository, belonging to the 0.2.11 release:
+
+https://github.com/namazso/PawnIO.Modules/releases/tag/0.2.11
+
+Embedded unmodified in fanrgb.exe; src/hw/pawnio.rs pins their SHA-256:
+
+  LpcIO.bin        b3896a1cab0d808fca31fe2ebcae045d59dac690da87b17c858bb8da357eb45e
+  AMDFamily17.bin  dae74615761b78bdf064dfb3e136252ddcc6fc727d88f14738d0e5800d427a91
+
+Checked on 2026-11-12: both are byte-identical to the files in the official release asset
+release_0_2_11.zip (sha256 43608cb89bc84247fef1368a139013f7d043e17db6d6c8dfc9b46bf0905a81f4).
+
+Licence: GNU Lesser General Public License 2.1 (COPYING). The complete source code of the release is in
+source/PawnIO.Modules-0.2.11-src.tar.gz: GitHub's archive of tag 0.2.11 (commit
+52a7e536dff3e53c96917a28caac5e0fa6510696), sha256
+d028aa51c08cf7078b692e2ba7bb2c08d3ca84db5276c6fb381d3ce91a908b23, unmodified. The two modules are
+LpcIO.p and AMDFamily17.p in it. tools/release.ps1 attaches this archive to every release, and every other
+download of fanrgb.exe carries it too.

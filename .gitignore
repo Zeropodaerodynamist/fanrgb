@@ -1,0 +1,42 @@
+/target
+/tools/fanrgb-release/target/
+/dist/
+__pycache__/
+
+# Never publish: material that is not ours to pass on, and internal working files.
+/re/
+/archive/
+/vendor/
+/GCC_*/
+*.msi
+*.cab
+*.exe
+# Signing keys and secrets (the real keys live outside the repository, see docs/KEYS.md).
+*.key
+*.pem
+*.p12
+*.pfx
+minisign.key
+.env
+.env.*
+update_token.bin
+# Local outputs: logs, diagnostics, crash dumps, debug symbols, SBOMs, catalog builder folders.
+*.log
+*.dmp
+*.pdb
+*.cdx.json
+diagnostics*.txt
+config.json.bad
+/out/
+/pages/
+/published/
+# Transfer manifests and editor / assistant folders.
+.audit-MANIFEST.sha256
+MANIFEST.sha256
+SHA256SUMS
+.vscode/
+.idea/
+.claude/
+.firefox-pilot/
+*.swp
+Thumbs.db

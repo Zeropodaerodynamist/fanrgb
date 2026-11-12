@@ -1,0 +1,23 @@
+# cargo-about: the licence texts of the crates compiled into fanrgb.exe, for THIRD-PARTY-LICENSES.html and
+# THIRD-PARTY-LICENSES.txt (plain text, embedded in fanrgb.exe). Regenerate both whenever Cargo.lock
+# changes; tools/release.ps1 attaches them to each release:
+#   cargo about generate --locked about.hbs -o THIRD-PARTY-LICENSES.html
+#   cargo about generate --locked about-text.hbs -o THIRD-PARTY-LICENSES.txt
+# The accepted list matches deny.toml [licenses] allow (crates only).
+accepted = [
+    "Apache-2.0",
+    "MIT",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "BSL-1.0",
+    "Unicode-3.0",
+    "OFL-1.1",
+    "Ubuntu-font-1.0",
+]
+targets = ["x86_64-pc-windows-msvc"]
+ignore-build-dependencies = true
+ignore-dev-dependencies = true
+# FanRGB itself (publish = false) is covered by LICENSE, LICENSE-MPL-2.0 and NOTICE.
+private = { ignore = true }

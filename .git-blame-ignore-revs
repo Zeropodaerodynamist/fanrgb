@@ -1,0 +1,4 @@
+# Mechanical commits that `git blame` skips (GitHub reads this file; locally:
+# git config blame.ignoreRevsFile .git-blame-ignore-revs).
+# rustfmt the code base (no functional change)
+a932aa83e9149a322289d92cc3d494535acd4979
